@@ -2,10 +2,9 @@ name: Refresh feed
 
 on:
   schedule:
-    # Times are UTC. These are 06:30, 12:00 and 18:00 in Taiwan (UTC+8).
-    - cron: "30 22 * * *"
-    - cron: "0 4 * * *"
-    - cron: "0 10 * * *"
+    # Every 3 hours in UTC+8: 00:00, 03:00, 06:00 ... 21:00.
+    # Cron is UTC, so that is 01:00, 04:00 ... 22:00 UTC.
+    - cron: "0 1-22/3 * * *"
   workflow_dispatch:        # the page's Refresh button and GitHub's "Run workflow" use this
   push:
     branches: [main]        # redeploy when you change code or add a source
