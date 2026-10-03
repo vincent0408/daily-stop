@@ -1,12 +1,30 @@
 # Daily Stop
 
-A personal morning page for AI / LLM / tech news. Each source becomes a
-section of cards; clicking a card opens the repo, story or paper.
+A one-page digest of what's trending in AI and tech today. Each source is a
+section of cards; click a card to open the repo, story or paper.
 
-Sources included: GitHub Trending, Hacker News, Hugging Face trending
-models, Hugging Face daily papers.
+**Live:** https://vincent0408.github.io/daily-stop/
 
-## Run it
+## Sources
+
+- **GitHub Trending**: repos gaining the most stars today
+- **Hacker News**: top stories on the front page
+- **Hugging Face Models**: models trending on the Hub
+- **Hugging Face Papers**: today's most upvoted research papers
+
+The page updates automatically a few times a day.
+
+## How it works
+
+GitHub Pages only serves static files, so a scheduled GitHub Actions workflow
+runs `build.py`, which fetches every source and writes `static/data/feed.json`.
+The workflow then publishes the `static/` folder to Pages. The front end is
+plain HTML, CSS and JavaScript with no build step.
+
+The same front end also works with a small FastAPI server for local use, where
+each section loads live.
+
+## Run it locally
 
 Requires Python 3.10+.
 
@@ -17,92 +35,57 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Open http://localhost:8000
+Open http://localhost:8000. API docs are at http://localhost:8000/docs.
 
-## Deploy free on GitHub Pages
+## Make your own
 
-A GitHub Actions workflow runs `build.py` on a schedule, writes
-`data/feed.json`, and publishes the `static/` folder to Pages. No server needed.
-
-**Quickest:** install the [GitHub CLI](https://cli.github.com), then run `./deploy.sh`
-from this folder. It signs you in, creates a public `daily-stop` repo, pushes,
-enables Pages and publishes the first feed. Prefer to do it by hand:
-
-1. Create a **public** repo on GitHub (e.g. `daily-stop`) and push this folder to its `main` branch.
-2. In the repo: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. **Actions** tab → **Refresh feed** → **Run workflow** to publish the first time.
+1. Fork this repo (or copy it into a new public repo).
+2. **Settings → Pages → Build and deployment → Source:** choose **GitHub Actions**.
+3. **Actions → Refresh feed → Run workflow** to publish the first time.
 4. Open `https://<your-username>.github.io/<repo>/`.
 
-The schedule lives in `.github/workflows/refresh.yml` (UTC cron times; the
-defaults are 06:30, 12:00 and 18:00 Taiwan time). Pushing to `main` also redeploys.
-GitHub may start scheduled runs a few minutes late and pauses them after 60 days
-without repo activity. Running the workflow manually starts them again.
+Change the update times in `.github/workflows/refresh.yml` (cron times are UTC).
+GitHub pauses scheduled workflows after 60 days without repo activity; running
+the workflow manually starts them again.
 
-### The Refresh now button
+### Optional: the Refresh now button
 
-On the Pages site, **Refresh now** starts the workflow and reloads the page when
-the new feed is live (usually 1–2 minutes). The first time, it asks for a GitHub token:
+The button starts the workflow from the page. It asks for a fine-grained
+GitHub token limited to your copy of this repo with **Actions: Read and write**
+only. The token is kept in your browser's local storage and never leaves it
+except to call the GitHub API. Without a token, the button links to the
+workflow page instead. Never commit a token to the repo.
 
-1. GitHub → Settings → Developer settings → **Fine-grained tokens** → Generate new token.
-2. Repository access: **Only select repositories** → this repo.
-3. Permissions: **Actions → Read and write**. Nothing else.
-4. Set an expiry and paste the token into the dialog.
+## Add a source
 
-The token is stored only in that browser's local storage and is never part of the
-site's code. Use the key button next to Refresh to replace or remove it. Without a
-token, the dialog links to the workflow page where you can press **Run workflow**.
+1. `cp app/sources/_template.py app/sources/my_source.py`
+2. Set `id`, `name`, `homepage` and `color`, then write `fetch()` so it returns
+   a list of `Item(title=..., url=..., description=..., metric=..., details=[...])`.
+3. Restart the server. A new section, filter chip and colour band appear.
 
-Never commit a token to the repo. Anyone can read a public Pages site's files.
+Files starting with `_` are ignored. If one source fails, only its own section
+shows an error.
+
+## Configuration
+
+| What | Where |
+|---|---|
+| GitHub weekly/monthly or one language | `since` / `language` in `app/sources/github_trending.py` |
+| AI-only Hacker News | uncomment `keywords` in `app/sources/hackernews.py` |
+| Cards per source | `limit` on any source class |
+| Section order | `order` on any source class |
+| Cache time (local server) | `ttl_seconds` on any source class |
+| Show only some sources | `DAILY_STOP_SOURCES=github,hackernews` |
 
 ## Project layout
 
 ```
-build.py               Fetches all sources and writes static/data/feed.json (for Pages)
-.github/workflows/
-  refresh.yml          Scheduled + manual workflow that builds and deploys to Pages
+build.py               Fetches all sources, writes static/data/feed.json
+.github/workflows/     Scheduled workflow that builds and deploys to Pages
 app/
   main.py              FastAPI app: /api/sources, /api/feed, /api/feed/{id}
-  feed.py              Parallel fetching + per-source cache, error isolation
-  models.py            Item / SourceFeed shapes shared by every source
-  sources/
-    __init__.py        Registry: auto-imports every module in this folder
-    base.py            Source base class
-    github_trending.py
-    hackernews.py
-    huggingface.py     Two sources: trending models + daily papers
-    _template.py       Copy this to add a source
-static/                Front end (plain HTML/CSS/JS, no build step). Works with the
-                       local server or with data/feed.json on Pages.
+  feed.py              Concurrent fetching, per-source cache, error isolation
+  models.py            Item / SourceFeed shapes
+  sources/             One module per source, auto-discovered
+static/                Front end (HTML/CSS/JS)
 ```
-
-## Add a new source
-
-1. `cp app/sources/_template.py app/sources/lobsters.py`
-2. Set `id`, `name`, `homepage`, `color`, then write `fetch()` so it returns
-   a list of `Item(title=..., url=..., description=..., metric=..., details=[...])`.
-3. Restart the server. A new section, filter chip and colour band appear.
-
-Files whose names start with `_` are ignored, so the template never loads.
-If a source raises an error, only its own section shows the problem.
-
-## Tune it
-
-| What | Where |
-|---|---|
-| GitHub weekly/monthly or one language | `since` / `language` in `github_trending.py` |
-| AI-only Hacker News | uncomment `keywords` in `hackernews.py` |
-| Cards per source | `limit` on any source class |
-| Cache time | `ttl_seconds` on any source class (default 30 min) |
-| Section order | `order` on any source class |
-| Show only some sources | `DAILY_STOP_SOURCES=github,hackernews uvicorn app.main:app` |
-
-"Refresh all" bypasses the cache. Loading the page normally uses cached
-results, so reopening it during the day is instant.
-
-## API
-
-- `GET /api/sources` – enabled sources and their colours
-- `GET /api/feed?refresh=true` – every source at once
-- `GET /api/feed/{id}?refresh=true` – one source
-
-Interactive docs: http://localhost:8000/docs
