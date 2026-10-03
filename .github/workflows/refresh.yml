@@ -1,0 +1,46 @@
+name: Refresh feed
+
+on:
+  schedule:
+    # Times are UTC. These are 06:30, 12:00 and 18:00 in Taiwan (UTC+8).
+    - cron: "30 22 * * *"
+    - cron: "0 4 * * *"
+    - cron: "0 10 * * *"
+  workflow_dispatch:        # the page's Refresh button and GitHub's "Run workflow" use this
+  push:
+    branches: [main]        # redeploy when you change code or add a source
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python build.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: static
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

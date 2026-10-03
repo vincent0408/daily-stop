@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daily Stop</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-top">
+      <p class="weekday" id="weekday"></p>
+      <div class="actions">
+        <button class="icon-btn" id="token-btn" type="button" aria-label="GitHub connection" title="GitHub connection" hidden>
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"><circle cx="8" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 12l9-9m-4 4l3 3m-6 0l2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button class="refresh" id="refresh-all" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="refresh-label">Refresh all</span>
+        </button>
+      </div>
+    </div>
+    <h1 class="date" id="date"></h1>
+    <div class="spectrum" id="spectrum" aria-hidden="true"></div>
+    <p class="summary" id="summary">Loading today's picks…</p>
+    <p class="status" id="status" role="status" aria-live="polite" hidden></p>
+  </header>
+
+  <nav class="filters" id="filters" aria-label="Filter by source"></nav>
+
+  <main id="feed"></main>
+
+  <dialog id="token-dialog" aria-labelledby="token-title">
+    <form method="dialog" class="dialog-body">
+      <h2 id="token-title">Refresh from this page</h2>
+      <p>The Refresh button starts your GitHub workflow. To do that it needs a GitHub token, which is saved only in this browser.</p>
+      <ol class="steps">
+        <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">new fine-grained token</a> on GitHub.</li>
+        <li>Under Repository access, choose Only select repositories and pick <strong id="repo-name">this repo</strong>.</li>
+        <li>Under Permissions, set Actions to Read and write. Leave everything else off.</li>
+        <li>Choose an expiry, generate it, and paste it below.</li>
+      </ol>
+      <label for="token-input">Token</label>
+      <input id="token-input" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+      <div class="dialog-actions">
+        <button type="button" class="ghost" id="token-forget" hidden>Remove saved token</button>
+        <span class="spacer"></span>
+        <button value="cancel" class="ghost" formnovalidate>Cancel</button>
+        <button value="save" class="primary" id="token-save">Save and refresh</button>
+      </div>
+      <p class="dialog-alt">Rather not use a token? <a id="workflow-link" target="_blank" rel="noopener noreferrer">Open the workflow on GitHub</a> and press Run workflow there.</p>
+    </form>
+  </dialog>
+
+  <template id="card-tpl">
+    <article class="card">
+      <div class="card-top">
+        <span class="rank"></span>
+        <span class="metric"></span>
+      </div>
+      <h3 class="card-title"><a class="card-link" target="_blank" rel="noopener noreferrer"></a></h3>
+      <p class="card-desc"></p>
+      <div class="card-foot">
+        <ul class="details"></ul>
+        <a class="discuss" target="_blank" rel="noopener noreferrer"></a>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
