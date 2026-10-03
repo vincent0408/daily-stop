@@ -43,30 +43,30 @@ a { color: inherit; }
 .masthead {
   max-width: 1240px;
   margin: 0 auto;
-  padding: clamp(1.5rem, 5vw, 3.5rem) clamp(1rem, 4vw, 2.5rem) 1.25rem;
+  padding: clamp(1rem, 3vw, 1.75rem) clamp(1rem, 4vw, 2.5rem) 0.75rem;
 }
 .masthead-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-.weekday { margin: 0; font: 500 1.125rem/1.2 var(--display); color: var(--muted); }
+.weekday { margin: 0; font: 500 1rem/1.2 var(--display); color: var(--muted); }
 
 .date {
-  margin: 0.15rem 0 1rem;
-  font: 800 clamp(3rem, 11vw, 7.5rem)/0.9 var(--display);
-  font-variation-settings: "opsz" 96;
-  letter-spacing: -0.035em;
+  margin: 0.1rem 0 0.6rem;
+  font: 800 clamp(1.75rem, 5vw, 2.75rem)/1 var(--display);
+  font-variation-settings: "opsz" 48;
+  letter-spacing: -0.025em;
 }
 
 /* Proportional band: how today's picks split across sources */
 .spectrum {
   display: flex;
-  height: 10px;
-  border-radius: 5px;
+  height: 6px;
+  border-radius: 3px;
   overflow: hidden;
   background: var(--line);
   max-width: 640px;
 }
 .spectrum span { transition: flex-grow 600ms ease; }
 
-.summary { margin: 0.75rem 0 0; color: var(--muted); }
+.summary { margin: 0.5rem 0 0; color: var(--muted); }
 
 .refresh {
   display: inline-flex; align-items: center; gap: 0.45rem;
